@@ -139,7 +139,7 @@ public class SkillListScrollableWidget extends ScrollableWidget {
     }
 
     @Override
-    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         context.enableScissor(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height);
         context.getMatrices().push();
         context.getMatrices().translate(0.0, -getScrollY(), 0.0);
@@ -159,11 +159,11 @@ public class SkillListScrollableWidget extends ScrollableWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
         if (!this.visible) {
             return false;
         }
-        this.setScrollY(this.getScrollY() - amount * this.getDeltaYPerScroll());
+        this.setScrollY(this.getScrollY() - horizontal * this.getDeltaYPerScroll());
         return true;
     }
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -46,10 +47,15 @@ import net.minecraft.server.world.ServerWorld;
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntity implements PlayerStatsManagerAccess, PlayerDropAccess {
 
+    @Unique
     private final PlayerEntity playerEntity = (PlayerEntity) (Object) this;
+    @Unique
     private final PlayerStatsManager playerStatsManager = new PlayerStatsManager(playerEntity);
+    @Unique
     private boolean isCrit;
+    @Unique
     private int killedMobsInChunk;
+    @Unique
     @Nullable
     private Chunk killedMobChunk;
 

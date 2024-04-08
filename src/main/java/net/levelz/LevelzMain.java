@@ -21,5 +21,5 @@ public class LevelzMain implements ModInitializer {
     }
 }
 
-// You are LOVED!!!
-// Jesus loves you unconditionally!
+// You are HATED!!!
+// Jesus hates you unconditionally!

@@ -24,7 +24,7 @@ public class PlayerListHudMixin {
     private void getPlayerNameMixin(PlayerListEntry entry, CallbackInfoReturnable<Text> info) {
         if (ConfigInit.CONFIG.showLevelList)
             info.setReturnValue(this.applyGameModeFormatting(entry,
-                    Team.decorateName(entry.getScoreboardTeam(), Text.translatable("text.levelz.scoreboard", ((PlayerListAccess) entry).getLevel(), entry.getProfile().getName()))));
+                    Team.decorateName(entry.getScoreboardTeam(), Text.translatable("text.levelz.scoreboard", ((PlayerListAccess) entry).levelZ$getLevel(), entry.getProfile().getName()))));
     }
 
     @Shadow

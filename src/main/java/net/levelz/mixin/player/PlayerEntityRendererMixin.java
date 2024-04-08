@@ -25,17 +25,17 @@ public class PlayerEntityRendererMixin {
     @Unique
     private AbstractClientPlayerEntity abstractClientPlayerEntity;
 
-    @Inject(method = "renderLabelIfPresent", at = @At(value = "HEAD"))
+    @Inject(method = "renderLabelIfPresent*", at = @At(value = "HEAD"))
     protected void renderLabelIfPresentMixin(AbstractClientPlayerEntity abstractClientPlayerEntity, Text text, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i,
             CallbackInfo info) {
         this.abstractClientPlayerEntity = abstractClientPlayerEntity;
     }
 
-    @ModifyArg(method = "renderLabelIfPresent", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;renderLabelIfPresent(Lnet/minecraft/entity/Entity;Lnet/minecraft/text/Text;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", ordinal = 1))
+    @ModifyArg(method = "renderLabelIfPresent*", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;renderLabelIfPresent(Lnet/minecraft/entity/Entity;Lnet/minecraft/text/Text;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", ordinal = 1))
     protected Text renderLabelIfPresentMixin(Text original) {
         if (ConfigInit.CONFIG.showLevel) {
             return Team.decorateName(abstractClientPlayerEntity.getScoreboardTeam(),
-                    Text.translatable("text.levelz.scoreboard", ((PlayerListAccess) abstractClientPlayerEntity).getLevel(), abstractClientPlayerEntity.getName()));
+                    Text.translatable("text.levelz.scoreboard", ((PlayerListAccess) abstractClientPlayerEntity).levelZ$getLevel(), abstractClientPlayerEntity.getName()));
         } else {
             return original;
         }

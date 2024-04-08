@@ -231,7 +231,7 @@ public class CommandInit {
             PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) serverPlayerEntity).getPlayerStatsManager();
             if (skill.equals("experience")) {
                 if (reference == 0)
-                    ((PlayerSyncAccess) serverPlayerEntity).addLevelExperience(i);
+                    ((PlayerSyncAccess) serverPlayerEntity).levelZ$addLevelExperience(i);
                 if (reference == 1) {
                     int currentXP = (int) (playerStatsManager.getLevelProgress() * playerStatsManager.getNextLevelExperience());
                     float oldProgress = playerStatsManager.getLevelProgress();
@@ -296,7 +296,7 @@ public class CommandInit {
                 } else if (skill.equals("level")) {
                     playerStatsManager.setOverallLevel(playerSkillLevel);
                     final int level = playerSkillLevel;
-                    serverPlayerEntity.getScoreboard().forEachScore(CriteriaInit.LEVELZ, serverPlayerEntity.getEntityName(), score -> score.setScore(level));
+                    serverPlayerEntity.getScoreboard().forEachScore(CriteriaInit.LEVELZ, serverPlayerEntity, score -> score.setScore(level));
                     serverPlayerEntity.server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_GAME_MODE, serverPlayerEntity));
                 } else {
                     playerStatsManager.setSkillLevel(Skill.valueOf(skill.toUpperCase()), playerSkillLevel);

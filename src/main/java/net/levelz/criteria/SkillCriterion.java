@@ -1,54 +1,57 @@
 package net.levelz.criteria;
 
-import com.google.gson.JsonObject;
-
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.advancement.criterion.AbstractCriterion;
-import net.minecraft.advancement.criterion.AbstractCriterionConditions;
-import net.minecraft.predicate.entity.AdvancementEntityPredicateDeserializer;
-import net.minecraft.predicate.entity.AdvancementEntityPredicateSerializer;
+import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.predicate.entity.LootContextPredicate;
+import net.minecraft.predicate.entity.LootContextPredicateValidator;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.dynamic.Codecs;
+
+import java.util.Optional;
 
 public class SkillCriterion extends AbstractCriterion<SkillCriterion.Conditions> {
-    static final Identifier ID = new Identifier("levelz:skill");
-
-    @Override
-    public Identifier getId() {
-        return ID;
-    }
-
-    @Override
-    protected Conditions conditionsFromJson(JsonObject jsonObject, LootContextPredicate lootContextPredicate, AdvancementEntityPredicateDeserializer advancementEntityPredicateDeserializer) {
-        SkillPredicate skillPredicate = SkillPredicate.fromJson(jsonObject.get("skill_name"));
-        NumberPredicate skillLevelPredicate = NumberPredicate.fromJson(jsonObject.get("skill_level"));
-        return new Conditions(lootContextPredicate, skillPredicate, skillLevelPredicate);
-    }
 
     public void trigger(ServerPlayerEntity player, String skillName, int skillLevel) {
-        this.trigger(player, conditions -> conditions.matches(player, skillName, skillLevel));
+        this.trigger(player, conditions -> conditions.matches(skillName, skillLevel));
     }
 
-    class Conditions extends AbstractCriterionConditions {
-        private final SkillPredicate skillPredicate;
-        private final NumberPredicate skillLevelPredicate;
+    @Override
+    public Codec<Conditions> getConditionsCodec() {
+        return Conditions.CODEC;
+    }
 
-        public Conditions(LootContextPredicate lootContextPredicate, SkillPredicate skillPredicate, NumberPredicate skillLevelPredicate) {
-            super(ID, lootContextPredicate);
-            this.skillPredicate = skillPredicate;
-            this.skillLevelPredicate = skillLevelPredicate;
+    public record Conditions(Optional<LootContextPredicate> player, Optional<SkillPredicate> skillName, Optional<NumberPredicate> skillLevel) implements AbstractCriterion.Conditions {
+        public static final Codec<Conditions> CODEC = Codecs.validate(RecordCodecBuilder.create(instance -> instance.group(
+                        EntityPredicate.LOOT_CONTEXT_PREDICATE_CODEC
+                                .optionalFieldOf("player")
+                                .forGetter(Conditions::player),
+                        SkillPredicate.CODEC
+                                .optionalFieldOf("skill_name")
+                                .forGetter(Conditions::skillName),
+                        NumberPredicate.CODEC
+                                .optionalFieldOf("skill_level")
+                                .forGetter(Conditions::skillLevel))
+                .apply(instance, Conditions::new)), Conditions::validate);
+
+        private static DataResult<Conditions> validate(Conditions conditions) {
+            if (conditions.player.isPresent() && conditions.skillName.isPresent() && conditions.skillLevel.isPresent()) {
+                return DataResult.success(conditions);
+            } else {
+                return DataResult.error(() -> "A skill criterion needs a player, skill name, and skill level");
+            }
         }
 
-        public boolean matches(ServerPlayerEntity player, String skillName, int skillLevel) {
-            return this.skillPredicate.test(skillName) && skillLevelPredicate.test(skillLevel);
+        public boolean matches(String skillName, int skillLevel) {
+            return this.skillName.map(predicate -> predicate.test(skillName)).orElse(false) &&
+                    this.skillLevel.map(predicate -> predicate.test(skillLevel)).orElse(false);
         }
-
         @Override
-        public JsonObject toJson(AdvancementEntityPredicateSerializer predicateSerializer) {
-            JsonObject jsonObject = super.toJson(predicateSerializer);
-            jsonObject.add("skill_name", this.skillPredicate.toJson());
-            jsonObject.add("skill_level", this.skillLevelPredicate.toJson());
-            return jsonObject;
+        public void validate(LootContextPredicateValidator validator) {
+            AbstractCriterion.Conditions.super.validate(validator);
+            validator.validateEntityPredicate(this.player, ".player");
         }
     }
 

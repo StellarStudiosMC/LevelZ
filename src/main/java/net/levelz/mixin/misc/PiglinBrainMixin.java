@@ -26,7 +26,7 @@ import net.minecraft.util.Hand;
 @Mixin(PiglinBrain.class)
 public class PiglinBrainMixin {
 
-    @Inject(method = "Lnet/minecraft/entity/mob/PiglinBrain;dropBarteredItem(Lnet/minecraft/entity/mob/PiglinEntity;Lnet/minecraft/entity/player/PlayerEntity;Ljava/util/List;)V", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "dropBarteredItem(Lnet/minecraft/entity/mob/PiglinEntity;Lnet/minecraft/entity/player/PlayerEntity;Ljava/util/List;)V", at = @At("HEAD"), cancellable = true)
     private static void dropBarteredItemMixin(PiglinEntity piglin, PlayerEntity player, List<ItemStack> items, CallbackInfo info) {
         ArrayList<Object> levelList = LevelLists.piglinList;
         if (!PlayerStatsManager.playerLevelisHighEnough(player, levelList, null, true)) {

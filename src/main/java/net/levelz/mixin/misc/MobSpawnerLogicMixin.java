@@ -15,8 +15,8 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.world.MobSpawnerEntry;
-import net.minecraft.world.MobSpawnerLogic;
+import net.minecraft.block.spawner.MobSpawnerEntry;
+import net.minecraft.block.spawner.MobSpawnerLogic;
 
 @SuppressWarnings("rawtypes")
 @Mixin(MobSpawnerLogic.class)

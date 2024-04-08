@@ -24,19 +24,19 @@ public abstract class PlayerListS2CPacketMixin implements PlayerListAccess {
     @Unique
     private Map<UUID, Integer> levelMap = new HashMap<UUID, Integer>();
 
-    @Inject(method = "Lnet/minecraft/network/packet/s2c/play/PlayerListS2CPacket;<init>(Ljava/util/EnumSet;Ljava/util/Collection;)V", at = @At("TAIL"))
+    @Inject(method = "<init>(Ljava/util/EnumSet;Ljava/util/Collection;)V", at = @At("TAIL"))
     public void playerListS2CPacketMixin(EnumSet<PlayerListS2CPacket.Action> actions, Collection<ServerPlayerEntity> players, CallbackInfo info) {
         players.forEach((player) -> {
             levelMap.put(player.getUuid(), ((PlayerStatsManagerAccess) player).getPlayerStatsManager().getOverallLevel());
         });
     }
 
-    @Inject(method = "Lnet/minecraft/network/packet/s2c/play/PlayerListS2CPacket;<init>(Lnet/minecraft/network/packet/s2c/play/PlayerListS2CPacket$Action;Lnet/minecraft/server/network/ServerPlayerEntity;)V", at = @At("TAIL"))
+    @Inject(method = "<init>(Lnet/minecraft/network/packet/s2c/play/PlayerListS2CPacket$Action;Lnet/minecraft/server/network/ServerPlayerEntity;)V", at = @At("TAIL"))
     public void playerListS2CPacketMixin(PlayerListS2CPacket.Action action, ServerPlayerEntity player, CallbackInfo info) {
         levelMap.put(player.getUuid(), ((PlayerStatsManagerAccess) player).getPlayerStatsManager().getOverallLevel());
     }
 
-    @Inject(method = "Lnet/minecraft/network/packet/s2c/play/PlayerListS2CPacket;<init>(Lnet/minecraft/network/PacketByteBuf;)V", at = @At("TAIL"))
+    @Inject(method = "<init>(Lnet/minecraft/network/PacketByteBuf;)V", at = @At("TAIL"))
     public void playerListS2CPacketMixin(PacketByteBuf buf, CallbackInfo info) {
         levelMap = buf.readMap(PacketByteBuf::readUuid, PacketByteBuf::readInt);
     }

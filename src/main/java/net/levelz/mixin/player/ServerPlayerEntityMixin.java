@@ -3,7 +3,9 @@ package net.levelz.mixin.player;
 import com.mojang.authlib.GameProfile;
 
 import net.levelz.stats.Skill;
+import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,7 +19,6 @@ import net.levelz.stats.PlayerStatsManager;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
-import net.minecraft.scoreboard.ScoreboardPlayerScore;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -29,17 +30,21 @@ import net.minecraft.world.World;
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity implements PlayerSyncAccess {
 
-    private PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) this).getPlayerStatsManager();
+    @Unique
+    private final PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) this).getPlayerStatsManager();
+    @Unique
     private int syncedLevelExperience = -99999999;
+    @Unique
     private boolean syncTeleportStats = false;
+    @Unique
     private int tinySyncTicker = 0;
 
-    public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
+    protected ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
         super(world, pos, yaw, gameProfile);
     }
 
     @Inject(method = "<init>", at = @At(value = "TAIL"))
-    private void initMixin(MinecraftServer server, ServerWorld world, GameProfile profile, CallbackInfo info) {
+    private void initMixin(MinecraftServer server, ServerWorld world, GameProfile profile, SyncedClientOptions clientOptions, CallbackInfo info) {
         ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) (Object) this;
         serverPlayerEntity.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH)
                 .setBaseValue(ConfigInit.CONFIG.healthBase + (double) playerStatsManager.getSkillLevel(Skill.HEALTH) * ConfigInit.CONFIG.healthBonus);
@@ -55,7 +60,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
     }
 
     @Override
-    public void addLevelExperience(int experience) {
+    public void levelZ$addLevelExperience(int experience) {
         ServerPlayerEntity playerEntity = (ServerPlayerEntity) (Object) this;
         if (!ConfigInit.CONFIG.useIndependentExp) {
             playerEntity.addExperience(experience);
@@ -64,12 +69,12 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         if (!playerStatsManager.isMaxLevel()) {
             playerStatsManager.setLevelProgress(playerStatsManager.getLevelProgress() + Math.max((float) experience / playerStatsManager.getNextLevelExperience(), 0));
             playerStatsManager.setTotalLevelExperience(MathHelper.clamp(playerStatsManager.getTotalLevelExperience() + experience, 0, Integer.MAX_VALUE));
-            levelUp(ConfigInit.CONFIG.overallMaxLevel, true, false);
+            levelZ$levelUp(ConfigInit.CONFIG.overallMaxLevel, true, false);
         }
     }
 
     @Override
-    public void levelUp(int levels, boolean deductXp, boolean ignoreMaxLevel) {
+    public void levelZ$levelUp(int levels, boolean deductXp, boolean ignoreMaxLevel) {
         if (levels == 0) {
             levels = Integer.MAX_VALUE;
         }
@@ -95,7 +100,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
             PlayerStatsManager.onLevelUp(playerEntity, playerStatsManager.getOverallLevel());
             CriteriaInit.LEVEL_UP.trigger(playerEntity, playerStatsManager.getOverallLevel());
             playerEntity.server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_GAME_MODE, playerEntity));
-            playerEntity.getScoreboard().forEachScore(CriteriaInit.LEVELZ, this.getEntityName(), ScoreboardPlayerScore::incrementScore);
+            playerEntity.getScoreboard().forEachScore(CriteriaInit.LEVELZ, this, scoreboardScore -> scoreboardScore.setScore(scoreboardScore.getScore() + 1));
             if (playerStatsManager.getOverallLevel() > 0) {
                 playerEntity.getWorld().playSound(null, playerEntity.getX(), playerEntity.getY(), playerEntity.getZ(), SoundEvents.ENTITY_PLAYER_LEVELUP, playerEntity.getSoundCategory(), 1.0F, 1.0F);
             }
@@ -116,7 +121,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         if (this.tinySyncTicker > 0) {
             this.tinySyncTicker--;
             if (this.tinySyncTicker % 20 == 0) {
-                syncStats(false);
+                levelZ$syncStats(false);
             }
         }
 
@@ -129,13 +134,13 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
 
     @Inject(method = "copyFrom", at = @At(value = "FIELD", target = "Lnet/minecraft/server/network/ServerPlayerEntity;syncedExperience:I", ordinal = 0))
     private void copyFromMixin(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo info) {
-        syncStats(false);
+        levelZ$syncStats(false);
     }
 
     // tinySyncer is necessary due to client player issues
     // client player isn't readily loaded when S2C Packets roll out for any reason
     @Override
-    public void syncStats(boolean syncDelay) {
+    public void levelZ$syncStats(boolean syncDelay) {
         this.syncTeleportStats = true;
         this.syncedLevelExperience = -1;
         if (syncDelay)

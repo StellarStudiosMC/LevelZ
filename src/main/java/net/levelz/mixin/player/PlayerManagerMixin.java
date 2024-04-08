@@ -10,9 +10,10 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
-import net.minecraft.scoreboard.ScoreboardPlayerScore;
+import net.minecraft.scoreboard.ScoreboardScore;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.UserCache;
@@ -40,8 +41,8 @@ public class PlayerManagerMixin {
     private MinecraftServer server;
 
     @Inject(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;onPlayerConnected(Lnet/minecraft/server/network/ServerPlayerEntity;)V"), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void onPlayerConnectMixin(ClientConnection connection, ServerPlayerEntity player, CallbackInfo info, GameProfile gameProfile, UserCache userCache, String string,
-            NbtCompound nbtCompound) {
+    private void onPlayerConnectMixin(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo info, GameProfile gameProfile, UserCache userCache, String string,
+                                      NbtCompound nbtCompound) {
         PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
         boolean isFirstTimeJoin = nbtCompound == null;
         if (isFirstTimeJoin && server != null && (server.getSaveProperties().getGeneratorOptions().hasBonusChest() || ConfigInit.CONFIG.enableStartPoints)) {
@@ -87,7 +88,7 @@ public class PlayerManagerMixin {
         }
         if (ConfigInit.CONFIG.hardMode) {
             serverPlayerEntity.server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_GAME_MODE, serverPlayerEntity));
-            serverPlayerEntity.getScoreboard().forEachScore(CriteriaInit.LEVELZ, serverPlayerEntity.getEntityName(), ScoreboardPlayerScore::clearScore);
+            serverPlayerEntity.getScoreboard().forEachScore(CriteriaInit.LEVELZ, serverPlayerEntity, scoreAccess -> scoreAccess.setScore(0));
         }
     }
 

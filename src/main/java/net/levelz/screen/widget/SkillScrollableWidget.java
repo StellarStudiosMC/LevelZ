@@ -219,7 +219,7 @@ public class SkillScrollableWidget extends ScrollableWidget {
     }
 
     @Override
-    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         context.enableScissor(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height);
         context.getMatrices().push();
         context.getMatrices().translate(0.0, -getScrollY(), 0.0);
@@ -228,6 +228,7 @@ public class SkillScrollableWidget extends ScrollableWidget {
         context.disableScissor();
         this.renderOverlay(context);
     }
+
 
     @Override
     protected void renderOverlay(DrawContext context) {
@@ -239,11 +240,11 @@ public class SkillScrollableWidget extends ScrollableWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
         if (!this.visible) {
             return false;
         }
-        this.setScrollY(this.getScrollY() - amount * this.getDeltaYPerScroll());
+        this.setScrollY(this.getScrollY() - vertical * this.getDeltaYPerScroll());
         return true;
     }
 
@@ -261,8 +262,8 @@ public class SkillScrollableWidget extends ScrollableWidget {
             return false;
         }
         boolean bl = this.isWithinBounds(mouseX, mouseY);
-        boolean bl2 = this.overflows() && mouseX >= (double) (this.getX() + this.width - 5) && mouseX <= (double) (this.getX() + this.width + 1) && mouseY >= (double) this.getY()
-                && mouseY < (double) (this.getY() + this.height);
+        boolean bl2 = this.overflows() && mouseX >= (this.getX() + this.width - 5) && mouseX <= (this.getX() + this.width + 1) && mouseY >= (double) this.getY()
+                && mouseY < (this.getY() + this.height);
         this.setFocused(bl || bl2);
         if (bl2 && button == 0) {
             this.scrollbarDragged = true;

@@ -21,7 +21,7 @@ import net.minecraft.util.Hand;
 @Mixin(Bucketable.class)
 public interface BucketableMixin {
 
-    @Inject(method = "Lnet/minecraft/entity/Bucketable;tryBucket(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;Lnet/minecraft/entity/LivingEntity;)Ljava/util/Optional;", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;playSound(Lnet/minecraft/sound/SoundEvent;FF)V"), cancellable = true)
+    @Inject(method = "tryBucket(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;Lnet/minecraft/entity/LivingEntity;)Ljava/util/Optional;", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;playSound(Lnet/minecraft/sound/SoundEvent;FF)V"), cancellable = true)
     private static <T extends LivingEntity> void tryBucketMixin(PlayerEntity player, Hand hand, T entity, CallbackInfoReturnable<Optional> info) {
         ArrayList<Object> levelList = LevelLists.bucketList;
         if (!PlayerStatsManager.playerLevelisHighEnough(player, levelList, null, true)) {

@@ -16,12 +16,12 @@ public abstract class PlayerListEntryMixin implements PlayerListAccess {
     private int level;
 
     @Override
-    public int getLevel() {
+    public int levelZ$getLevel() {
         return this.level;
     }
 
     @Override
-    public void setLevel(int level) {
+    public void levelZ$setLevel(int level) {
         this.level = level;
     }
 }

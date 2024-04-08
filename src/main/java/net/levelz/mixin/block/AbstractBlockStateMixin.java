@@ -35,7 +35,7 @@ public class AbstractBlockStateMixin {
 
         if (!levelList.isEmpty() && levelList.contains(Registries.ITEM.getId(item).toString())) {
             if (!PlayerStatsManager.playerLevelisHighEnough(player, levelList, Registries.ITEM.getId(item).toString(), true))
-                ((PlayerBreakBlockAccess) player.getInventory()).setInventoryBlockBreakable(false);
+                ((PlayerBreakBlockAccess) player.getInventory()).levelZ$setInventoryBlockBreakable(false);
         } else if (item instanceof MiningToolItem) {
             if (item instanceof HoeItem) {
                 levelList = LevelLists.hoeList;
@@ -45,24 +45,24 @@ public class AbstractBlockStateMixin {
                 levelList = LevelLists.toolList;
             }
             if (!PlayerStatsManager.playerLevelisHighEnough(player, levelList, ((MiningToolItem) item).getMaterial().toString().toLowerCase(), true)) {
-                ((PlayerBreakBlockAccess) player.getInventory()).setInventoryBlockBreakable(false);
+                ((PlayerBreakBlockAccess) player.getInventory()).levelZ$setInventoryBlockBreakable(false);
             } else
-                ((PlayerBreakBlockAccess) player.getInventory()).setInventoryBlockBreakable(true);
+                ((PlayerBreakBlockAccess) player.getInventory()).levelZ$setInventoryBlockBreakable(true);
         } else
-            ((PlayerBreakBlockAccess) player.getInventory()).setInventoryBlockBreakable(true);
+            ((PlayerBreakBlockAccess) player.getInventory()).levelZ$setInventoryBlockBreakable(true);
 
         // Set abstract block calculation here
         PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
         int playerMiningLevel = playerStatsManager.getSkillLevel(Skill.MINING);
         if (playerMiningLevel < ConfigInit.CONFIG.maxLevel) {
             if (PlayerStatsManager.listContainsItemOrBlock(player, 1, Registries.BLOCK.getRawId(world.getBlockState(pos).getBlock()))) {
-                ((PlayerBreakBlockAccess) player.getInventory()).setAbstractBlockBreakDelta(ConfigInit.CONFIG.miningLockedMultiplicator);
+                ((PlayerBreakBlockAccess) player.getInventory()).levelZ$setAbstractBlockBreakDelta(ConfigInit.CONFIG.miningLockedMultiplicator);
             } else if (playerMiningLevel < 5) {
-                ((PlayerBreakBlockAccess) player.getInventory()).setAbstractBlockBreakDelta(1.2F - playerMiningLevel * 0.0475F);
+                ((PlayerBreakBlockAccess) player.getInventory()).levelZ$setAbstractBlockBreakDelta(1.2F - playerMiningLevel * 0.0475F);
             } else
-                ((PlayerBreakBlockAccess) player.getInventory()).setAbstractBlockBreakDelta(1.0F);
+                ((PlayerBreakBlockAccess) player.getInventory()).levelZ$setAbstractBlockBreakDelta(1.0F);
         } else
-            ((PlayerBreakBlockAccess) player.getInventory()).setAbstractBlockBreakDelta(1.0F);
+            ((PlayerBreakBlockAccess) player.getInventory()).levelZ$setAbstractBlockBreakDelta(1.0F);
     }
 
     // No player instance given to check

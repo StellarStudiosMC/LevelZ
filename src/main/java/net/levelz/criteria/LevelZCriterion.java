@@ -1,52 +1,45 @@
 package net.levelz.criteria;
 
-import com.google.gson.JsonObject;
-
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.advancement.criterion.AbstractCriterion;
-import net.minecraft.advancement.criterion.AbstractCriterionConditions;
-import net.minecraft.predicate.entity.AdvancementEntityPredicateDeserializer;
-import net.minecraft.predicate.entity.AdvancementEntityPredicateSerializer;
+import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.predicate.entity.LootContextPredicate;
+import net.minecraft.predicate.entity.LootContextPredicateValidator;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.dynamic.Codecs;
+
+import java.util.Optional;
 
 public class LevelZCriterion extends AbstractCriterion<LevelZCriterion.Conditions> {
-    private static final Identifier ID = new Identifier("levelz:level");
-
-    @Override
-    public Identifier getId() {
-        return ID;
-    }
-
-    @Override
-    protected Conditions conditionsFromJson(JsonObject jsonObject, LootContextPredicate lootContextPredicate, AdvancementEntityPredicateDeserializer advancementEntityPredicateDeserializer) {
-        NumberPredicate numberPredicate = NumberPredicate.fromJson(jsonObject.get("level"));
-        return new Conditions(lootContextPredicate, numberPredicate);
-    }
 
     public void trigger(ServerPlayerEntity player, int level) {
-        this.trigger(player, conditions -> conditions.matches(player, level));
+        this.trigger(player, conditions -> conditions.matches(level));
     }
 
-    class Conditions extends AbstractCriterionConditions {
+    @Override
+    public Codec<Conditions> getConditionsCodec() {
+        return Conditions.CODEC;
+    }
 
-        private final NumberPredicate numberPredicate;
+    public record Conditions(Optional<LootContextPredicate> player, Optional<NumberPredicate> level) implements AbstractCriterion.Conditions {
+        public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                        Codecs.createStrictOptionalFieldCodec(EntityPredicate.LOOT_CONTEXT_PREDICATE_CODEC, "player")
+                                .forGetter(Conditions::player),
+                        Codecs.createStrictOptionalFieldCodec(NumberPredicate.CODEC, "level")
+                                .forGetter(Conditions::level))
+                .apply(instance, Conditions::new));
 
-        public Conditions(LootContextPredicate lootContextPredicate, NumberPredicate numberPredicate) {
-            super(ID, lootContextPredicate);
-            this.numberPredicate = numberPredicate;
-        }
-
-        public boolean matches(ServerPlayerEntity player, int level) {
-            return this.numberPredicate.test(level);
+        public boolean matches(int level) {
+            return this.level.map(predicate -> predicate.test(level)).orElse(false);
         }
 
         @Override
-        public JsonObject toJson(AdvancementEntityPredicateSerializer predicateSerializer) {
-            JsonObject jsonObject = super.toJson(predicateSerializer);
-            jsonObject.add("level", this.numberPredicate.toJson());
-            return jsonObject;
+        public void validate(LootContextPredicateValidator validator) {
+            AbstractCriterion.Conditions.super.validate(validator);
+            validator.validateEntityPredicate(this.player, ".player");
         }
+
     }
 
 }

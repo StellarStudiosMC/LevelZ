@@ -21,9 +21,9 @@ public abstract class AbstractClientPlayerEntityMixin implements PlayerListAcces
     }
 
     @Override
-    public int getLevel() {
+    public int levelZ$getLevel() {
         if (getPlayerListEntry() != null) {
-            return ((PlayerListAccess) getPlayerListEntry()).getLevel();
+            return ((PlayerListAccess) getPlayerListEntry()).levelZ$getLevel();
         }
         return 0;
     }

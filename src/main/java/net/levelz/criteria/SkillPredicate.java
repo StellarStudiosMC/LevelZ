@@ -3,9 +3,12 @@ package net.levelz.criteria;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.util.JsonHelper;
 
 public class SkillPredicate {
+
+    public static final Codec<SkillPredicate> CODEC = Codec.STRING.xmap(SkillPredicate::new, skillPredicate -> skillPredicate.jobName);
     private final String jobName;
 
     public SkillPredicate(String jobName) {

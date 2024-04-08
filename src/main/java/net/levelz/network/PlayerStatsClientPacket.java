@@ -18,7 +18,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
+import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 
 public class PlayerStatsClientPacket {
 
@@ -87,16 +87,12 @@ public class PlayerStatsClientPacket {
             while (buf.isReadable()) {
                 newBuffer.writeString(buf.readString());
             }
-            client.execute(() -> {
-                executeListPacket(newBuffer, client.player);
-            });
+            client.execute(() -> executeListPacket(newBuffer, client.player));
         });
 
         ClientPlayNetworking.registerGlobalReceiver(PlayerStatsServerPacket.STRENGTH_PACKET, (client, handler, buf, sender) -> {
             double damageAttribute = buf.readDouble();
-            client.execute(() -> {
-                client.player.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).setBaseValue(damageAttribute);
-            });
+            client.execute(() -> client.player.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).setBaseValue(damageAttribute));
         });
 
         ClientPlayNetworking.registerGlobalReceiver(PlayerStatsServerPacket.RESET_PACKET, (client, handler, buf, sender) -> {
@@ -141,7 +137,7 @@ public class PlayerStatsClientPacket {
                     levelExperienceOrbEntity.setYaw(0.0f);
                     levelExperienceOrbEntity.setPitch(0.0f);
                     levelExperienceOrbEntity.setId(id);
-                    client.world.addEntity(id, levelExperienceOrbEntity);
+                    client.world.addEntity(levelExperienceOrbEntity);
                 }
             });
         });
@@ -161,10 +157,11 @@ public class PlayerStatsClientPacket {
         }
 
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeIdentifier(PlayerStatsServerPacket.STATS_INCREASE_PACKET);
         buf.writeString(skill.name());
         buf.writeInt(level);
 
-        CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(PlayerStatsServerPacket.STATS_INCREASE_PACKET, buf);
+        CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(buf);
         MinecraftClient.getInstance().getNetworkHandler().sendPacket(packet);
     }
 
@@ -288,8 +285,9 @@ public class PlayerStatsClientPacket {
     public static void writeC2SLevelUpPacket(int levels) {
         // Levelz level up
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeIdentifier(PlayerStatsServerPacket.LEVEL_UP_BUTTON_PACKET);
         buf.writeInt(levels);
-        CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(PlayerStatsServerPacket.LEVEL_UP_BUTTON_PACKET, buf);
+        CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(buf);
         Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendPacket(packet);
     }
 

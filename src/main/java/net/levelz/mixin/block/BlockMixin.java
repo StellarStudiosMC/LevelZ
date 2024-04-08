@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -45,53 +46,53 @@ import net.minecraft.world.World;
 @Mixin(Block.class)
 public class BlockMixin {
 
+    @Unique
     @Nullable
     private ServerPlayerEntity serverPlayerEntity = null;
 
-    @Inject(method = "Lnet/minecraft/block/Block;dropStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;getDroppedStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)Ljava/util/List;"), cancellable = true)
+    @Inject(method = "dropStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;getDroppedStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)Ljava/util/List;"), cancellable = true)
     private static void dropStacksMixin(BlockState state, World world, BlockPos pos, @Nullable BlockEntity blockEntity, Entity entity, ItemStack stack, CallbackInfo info) {
-        if (entity instanceof PlayerEntity) {
+        if (entity instanceof PlayerEntity playerEntity) {
             if (EntityInit.isRedstoneBitsLoaded && entity.getClass().getName().contains("RedstoneBitsFakePlayer")) {
                 // Redstone bits block breaker compat
             } else {
-                if (PlayerStatsManager.listContainsItemOrBlock((PlayerEntity) entity, Registries.BLOCK.getRawId(state.getBlock()), 1)) {
+                if (PlayerStatsManager.listContainsItemOrBlock(playerEntity, Registries.BLOCK.getRawId(state.getBlock()), 1)) {
                     info.cancel();
-                } else if (stack.getItem() instanceof MiningToolItem) {
-                    Item item = stack.getItem();
+                } else if (stack.getItem() instanceof MiningToolItem miningToolItem) {
                     ArrayList<Object> levelList = LevelLists.customItemList;
                     try {
-                        if (!levelList.isEmpty() && levelList.contains(Registries.ITEM.getId(item).toString())) {
-                            if (!PlayerStatsManager.playerLevelisHighEnough((PlayerEntity) entity, levelList, Registries.ITEM.getId(item).toString(), true)) {
+                        if (!levelList.isEmpty() && levelList.contains(Registries.ITEM.getId(miningToolItem).toString())) {
+                            if (!PlayerStatsManager.playerLevelisHighEnough(playerEntity, levelList, Registries.ITEM.getId(miningToolItem).toString(), true)) {
                                 info.cancel();
                             }
                         }
                     } catch (AbstractMethodError ignore) {
                     }
                     levelList = null;
-                    if (item instanceof AxeItem) {
+                    if (miningToolItem instanceof AxeItem) {
                         levelList = LevelLists.axeList;
-                    } else if (item instanceof HoeItem) {
+                    } else if (miningToolItem instanceof HoeItem) {
                         levelList = LevelLists.hoeList;
-                    } else if (item instanceof PickaxeItem || item instanceof ShovelItem) {
+                    } else if (miningToolItem instanceof PickaxeItem || miningToolItem instanceof ShovelItem) {
                         levelList = LevelLists.toolList;
                     }
                     if (levelList != null
-                            && !PlayerStatsManager.playerLevelisHighEnough((PlayerEntity) entity, levelList, ((MiningToolItem) stack.getItem()).getMaterial().toString().toLowerCase(), true)) {
+                            && !PlayerStatsManager.playerLevelisHighEnough(playerEntity, levelList, ((MiningToolItem) stack.getItem()).getMaterial().toString().toLowerCase(), true)) {
                         info.cancel();
                     }
-                } else if (stack.getItem() instanceof ShearsItem && !PlayerStatsManager.playerLevelisHighEnough((PlayerEntity) entity, LevelLists.shearsList, null, true)) {
+                } else if (stack.getItem() instanceof ShearsItem && !PlayerStatsManager.playerLevelisHighEnough(playerEntity, LevelLists.shearsList, null, true)) {
                     info.cancel();
                 }
             }
         }
     }
 
-    @Inject(method = "Lnet/minecraft/block/Block;getDroppedStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)Ljava/util/List;", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getDroppedStacks(Lnet/minecraft/loot/context/LootContextParameterSet$Builder;)Ljava/util/List;"), locals = LocalCapture.CAPTURE_FAILSOFT)
+    @Inject(method = "getDroppedStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)Ljava/util/List;", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getDroppedStacks(Lnet/minecraft/loot/context/LootContextParameterSet$Builder;)Ljava/util/List;"), locals = LocalCapture.CAPTURE_FAILSOFT)
     private static void getDroppedStacksMixin(BlockState state, ServerWorld world, BlockPos pos, @Nullable BlockEntity blockEntity, @Nullable Entity entity, ItemStack stack,
             CallbackInfoReturnable<List<ItemStack>> info, LootContextParameterSet.Builder builder) {
         if (entity != null && state.getBlock() instanceof ExperienceDroppingBlock && entity instanceof PlayerEntity playerEntity) {
             if ((float) ((PlayerStatsManagerAccess) playerEntity).getPlayerStatsManager().getSkillLevel(Skill.MINING) * ConfigInit.CONFIG.miningOreChance > world.random.nextFloat()
-                    && EnchantmentHelper.getLevel(Enchantments.SILK_TOUCH, stack) == 0 && state.getDroppedStacks(builder).size() > 0) {
+                    && EnchantmentHelper.getLevel(Enchantments.SILK_TOUCH, stack) == 0 && !state.getDroppedStacks(builder).isEmpty()) {
                 Block.dropStack(world, pos, state.getDroppedStacks(builder).get(0).split(1));
             }
         }
@@ -108,7 +109,7 @@ public class BlockMixin {
     }
 
     @Inject(method = "onBreak", at = @At(value = "HEAD"))
-    private void onBreakMixin(World world, BlockPos pos, BlockState state, PlayerEntity player, CallbackInfo info) {
+    private void onBreakMixin(World world, BlockPos pos, BlockState state, PlayerEntity player, CallbackInfoReturnable<BlockState> cir) {
         if (!world.isClient)
             serverPlayerEntity = (ServerPlayerEntity) player;
     }

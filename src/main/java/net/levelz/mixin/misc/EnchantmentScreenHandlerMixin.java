@@ -38,7 +38,7 @@ public abstract class EnchantmentScreenHandlerMixin {
 
     private PlayerInventory playerInventory;
 
-    @Inject(method = "Lnet/minecraft/screen/EnchantmentScreenHandler;<init>(ILnet/minecraft/entity/player/PlayerInventory;Lnet/minecraft/screen/ScreenHandlerContext;)V", at = @At(value = "TAIL"))
+    @Inject(method = "<init>(ILnet/minecraft/entity/player/PlayerInventory;Lnet/minecraft/screen/ScreenHandlerContext;)V", at = @At(value = "TAIL"))
     private void initMixin(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context, CallbackInfo info) {
         this.playerInventory = playerInventory;
     }
@@ -50,7 +50,7 @@ public abstract class EnchantmentScreenHandlerMixin {
             if (!itemStack.isEmpty() && itemStack.isEnchantable()) {
                 PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) playerInventory.player).getPlayerStatsManager();
                 ArrayList<Object> enchantingTableList = LevelLists.enchantingTableList;
-                if (enchantingTableList != null && !enchantingTableList.isEmpty()) {
+                if (!enchantingTableList.isEmpty()) {
                     int playerAlchemyLevel = playerStatsManager.getSkillLevel(Skill.valueOf(enchantingTableList.get(0).toString().toUpperCase()));
                     if (playerAlchemyLevel < ConfigInit.CONFIG.maxLevel) {
                         if (playerAlchemyLevel < (int) enchantingTableList.get(4)) {

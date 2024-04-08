@@ -2,9 +2,9 @@ package net.levelz.access;
 
 public interface PlayerSyncAccess {
 
-    void syncStats(boolean syncDelay);
+    void levelZ$syncStats(boolean syncDelay);
 
-    void addLevelExperience(int experience);
+    void levelZ$addLevelExperience(int experience);
 
-    void levelUp(int levels, boolean deductXp, boolean ignoreMaxLevel);
+    void levelZ$levelUp(int levels, boolean deductXp, boolean ignoreMaxLevel);
 }

@@ -27,9 +27,9 @@ public class RareCandyItem extends Item {
             PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) user).getPlayerStatsManager();
             if (ConfigInit.CONFIG.useIndependentExp)
                 ((PlayerSyncAccess) user)
-                        .addLevelExperience(playerStatsManager.getNextLevelExperience() - ((int) (playerStatsManager.getLevelProgress() * playerStatsManager.getNextLevelExperience())));
+                        .levelZ$addLevelExperience(playerStatsManager.getNextLevelExperience() - ((int) (playerStatsManager.getLevelProgress() * playerStatsManager.getNextLevelExperience())));
             else
-                ((PlayerSyncAccess) user).levelUp(1, false, false);
+                ((PlayerSyncAccess) user).levelZ$levelUp(1, false, false);
         }
         return TypedActionResult.success(stack, world.isClient());
     }

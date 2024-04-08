@@ -23,7 +23,7 @@ public class EventInit {
 
     public static void init() {
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
-            ((PlayerSyncAccess) player).syncStats(false);
+            ((PlayerSyncAccess) player).levelZ$syncStats(false);
         });
         UseItemCallback.EVENT.register((player, world, hand) -> {
             if (!player.isCreative() && !player.isSpectator()) {

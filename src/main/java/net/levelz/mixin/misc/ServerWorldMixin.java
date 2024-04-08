@@ -14,6 +14,6 @@ public class ServerWorldMixin {
 
     @Inject(method = "addPlayer", at = @At(value = "TAIL"))
     private void addPlayerMixin(ServerPlayerEntity player, CallbackInfo info) {
-        ((PlayerSyncAccess) player).syncStats(true);
+        ((PlayerSyncAccess) player).levelZ$syncStats(true);
     }
 }

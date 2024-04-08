@@ -1,9 +1,6 @@
 package net.levelz.mixin.player;
 
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,8 +28,10 @@ public abstract class PlayerInventoryMixin implements PlayerBreakBlockAccess {
     @Shadow
     public int selectedSlot;
 
+    @Unique
     public boolean canBreakBlock = true;
 
+    @Unique
     public float blockBreakExtraDelta = 1.0F;
 
     @Inject(method = "getBlockBreakingSpeed", at = @At(value = "HEAD"), cancellable = true)
@@ -42,17 +41,17 @@ public abstract class PlayerInventoryMixin implements PlayerBreakBlockAccess {
     }
 
     @Override
-    public void setInventoryBlockBreakable(boolean breakable) {
+    public void levelZ$setInventoryBlockBreakable(boolean breakable) {
         this.canBreakBlock = breakable;
     }
 
     @Override
-    public void setAbstractBlockBreakDelta(float breakingDelta) {
+    public void levelZ$setAbstractBlockBreakDelta(float breakingDelta) {
         this.blockBreakExtraDelta = breakingDelta;
     }
 
     @Override
-    public float getBreakingAbstractBlockDelta() {
+    public float levelZ$getBreakingAbstractBlockDelta() {
         return this.blockBreakExtraDelta;
     }
 

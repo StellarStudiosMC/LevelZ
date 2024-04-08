@@ -5,9 +5,9 @@ import java.util.UUID;
 
 public interface PlayerListAccess {
 
-    public int getLevel();
+    public int levelZ$getLevel();
 
-    public void setLevel(int level);
+    public void levelZ$setLevel(int level);
 
     public Map<UUID, Integer> getLevelMap();
 

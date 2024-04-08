@@ -32,7 +32,7 @@ public abstract class EnchantmentScreenMixin extends HandledScreen<EnchantmentSc
 
     @Inject(method = "drawBackground", at = @At(value = "TAIL"))
     protected void drawBackgroundMixin(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo info) {
-        if (LevelLists.enchantingTableList != null && !LevelLists.enchantingTableList.isEmpty()) {
+        if (!LevelLists.enchantingTableList.isEmpty()) {
             int i = (this.width - this.backgroundWidth) / 2;
             int j = (this.height - this.backgroundHeight) / 2;
             if (this.isPointWithinBounds(176, 0, 11, 13, (double) mouseX, (double) mouseY)) {

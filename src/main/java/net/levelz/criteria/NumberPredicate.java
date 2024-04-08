@@ -2,32 +2,19 @@ package net.levelz.criteria;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
 import net.minecraft.util.JsonHelper;
 
 public class NumberPredicate {
     private final int levelZ;
+    public static final Codec<NumberPredicate> CODEC = Codec.INT.xmap(NumberPredicate::new, (numberPredicate) -> numberPredicate.levelZ);
 
     public NumberPredicate(int levelZ) {
         this.levelZ = levelZ;
     }
 
     public boolean test(int level) {
-        if (this.levelZ == 0 || this.levelZ == level) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static NumberPredicate fromJson(JsonElement json) {
-        int level = JsonHelper.asInt(json, "level");
-        return new NumberPredicate(level);
-    }
-
-    public JsonElement toJson() {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("level", (Number) this.levelZ);
-        return jsonObject;
+        return this.levelZ == 0 || this.levelZ == level;
     }
 
 }

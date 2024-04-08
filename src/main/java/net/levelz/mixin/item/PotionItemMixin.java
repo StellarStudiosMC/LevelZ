@@ -20,17 +20,26 @@ import net.minecraft.world.World;
 @Mixin(PotionItem.class)
 public class PotionItemMixin {
 
-    @ModifyVariable(method = "finishUsing", at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/potion/PotionUtil;getPotionEffects(Lnet/minecraft/item/ItemStack;)Ljava/util/List;"), ordinal = 0)
+    @ModifyVariable(
+            method = "finishUsing(Lnet/minecraft/item/ItemStack;Lnet/minecraft/world/World;Lnet/minecraft/entity/LivingEntity;)Lnet/minecraft/item/ItemStack;",
+            at = @At(
+                    value = "INVOKE_ASSIGN",
+                    target = "Lnet/minecraft/potion/PotionUtil;getPotionEffects(Lnet/minecraft/item/ItemStack;)Ljava/util/List;",
+                    ordinal = 0
+            ),
+            ordinal = 0,
+            name = "list"
+    )
     private List<StatusEffectInstance> finishUsingMixin(List<StatusEffectInstance> original, ItemStack stack, World world, LivingEntity user) {
         if (user instanceof PlayerEntity) {
-            int alchemyLevel = ((PlayerStatsManagerAccess) (PlayerEntity) user).getPlayerStatsManager().getSkillLevel(Skill.ALCHEMY);
+            int alchemyLevel = ((PlayerStatsManagerAccess) user).getPlayerStatsManager().getSkillLevel(Skill.ALCHEMY);
             if (alchemyLevel >= ConfigInit.CONFIG.maxLevel && (float) alchemyLevel * ConfigInit.CONFIG.alchemyPotionChance > world.random.nextFloat()) {
                 List<StatusEffectInstance> newEffectList = new ArrayList<>();
-                for (int i = 0; i < original.size(); i++) {
+                for (StatusEffectInstance statusEffectInstance : original) {
                     newEffectList.add(
-                            new StatusEffectInstance(original.get(i).getEffectType(), original.get(i).getEffectType().isInstant() ? original.get(i).getDuration() : original.get(i).getDuration() * 2,
-                                    original.get(i).getEffectType().isInstant() ? original.get(i).getAmplifier() + 1 : original.get(i).getAmplifier(), original.get(i).isAmbient(),
-                                    original.get(i).shouldShowParticles(), original.get(i).shouldShowIcon()));
+                            new StatusEffectInstance(statusEffectInstance.getEffectType(), statusEffectInstance.getEffectType().isInstant() ? statusEffectInstance.getDuration() : statusEffectInstance.getDuration() * 2,
+                                    statusEffectInstance.getEffectType().isInstant() ? statusEffectInstance.getAmplifier() + 1 : statusEffectInstance.getAmplifier(), statusEffectInstance.isAmbient(),
+                                    statusEffectInstance.shouldShowParticles(), statusEffectInstance.shouldShowIcon()));
                 }
                 return newEffectList;
             }

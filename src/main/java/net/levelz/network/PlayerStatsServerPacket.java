@@ -17,7 +17,7 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
@@ -86,31 +86,34 @@ public class PlayerStatsServerPacket {
         ServerPlayNetworking.registerGlobalReceiver(LEVEL_UP_BUTTON_PACKET, (server, player, handler, buffer, sender) -> {
             int levelUp = buffer.readInt();
             server.execute(() -> {
-                ((PlayerSyncAccess) player).levelUp(levelUp, true, false);
+                ((PlayerSyncAccess) player).levelZ$levelUp(levelUp, true, false);
             });
         });
     }
 
     public static void writeS2CSyncLevelPacket(PlayerStatsManager playerStatsManager, ServerPlayerEntity serverPlayerEntity, Skill skill) {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeIdentifier(STATS_SYNC_PACKET);
         buf.writeString(skill.name());
         buf.writeInt(playerStatsManager.getSkillLevel(skill));
         buf.writeInt(playerStatsManager.getSkillPoints());
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(STATS_SYNC_PACKET, buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(buf);
         serverPlayerEntity.networkHandler.sendPacket(packet);
     }
 
     public static void writeS2CXPPacket(PlayerStatsManager playerStatsManager, ServerPlayerEntity serverPlayerEntity) {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeIdentifier(XP_PACKET);
         buf.writeFloat(playerStatsManager.getLevelProgress());
         buf.writeInt(playerStatsManager.getTotalLevelExperience());
         buf.writeInt(playerStatsManager.getOverallLevel());
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(XP_PACKET, buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(buf);
         serverPlayerEntity.networkHandler.sendPacket(packet);
     }
 
     public static void writeS2CSkillPacket(PlayerStatsManager playerStatsManager, ServerPlayerEntity serverPlayerEntity) {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeIdentifier(LEVEL_PACKET);
         buf.writeFloat(playerStatsManager.getLevelProgress());
         buf.writeInt(playerStatsManager.getTotalLevelExperience());
         buf.writeInt(playerStatsManager.getOverallLevel());
@@ -125,14 +128,15 @@ public class PlayerStatsServerPacket {
         syncLockedSmithingItemList(playerStatsManager);
         syncLockedCraftingItemList(playerStatsManager);
 
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(LEVEL_PACKET, buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(buf);
         serverPlayerEntity.networkHandler.sendPacket(packet);
     }
 
     public static void writeS2CStrengthPacket(ServerPlayerEntity serverPlayerEntity) {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeIdentifier(STRENGTH_PACKET);
         buf.writeDouble(serverPlayerEntity.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).getBaseValue());
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(STRENGTH_PACKET, buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(buf);
         serverPlayerEntity.networkHandler.sendPacket(packet);
     }
 
@@ -193,6 +197,8 @@ public class PlayerStatsServerPacket {
 
     public static void writeS2CListPacket(ServerPlayerEntity serverPlayerEntity) {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeIdentifier(LIST_PACKET);
+
         for (int i = 0; i < LevelLists.getListNames().size(); i++) {
             String listName = LevelLists.getListNames().get(i);
             ArrayList<Object> list = LevelLists.getList(listName);
@@ -230,7 +236,7 @@ public class PlayerStatsServerPacket {
             }
         }
 
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(LIST_PACKET, buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(buf);
         serverPlayerEntity.networkHandler.sendPacket(packet);
 
         // TEST
@@ -295,8 +301,9 @@ public class PlayerStatsServerPacket {
         }
         }
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeIdentifier(LEVEL_EXPERIENCE_ORB_PACKET);
         buf.writeString(skill.name());
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(RESET_PACKET, buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(buf);
         serverPlayerEntity.networkHandler.sendPacket(packet);
     }
 
@@ -307,7 +314,7 @@ public class PlayerStatsServerPacket {
         buf.writeDouble(levelExperienceOrbEntity.getY());
         buf.writeDouble(levelExperienceOrbEntity.getZ());
         buf.writeShort(levelExperienceOrbEntity.getExperienceAmount());
-        return ServerPlayNetworking.createS2CPacket(LEVEL_EXPERIENCE_ORB_PACKET, buf);
+        return (Packet<ClientPlayPacketListener>) (Object) ServerPlayNetworking.createS2CPacket(LEVEL_EXPERIENCE_ORB_PACKET, buf);
     }
 
 }

@@ -58,8 +58,8 @@ public class SkillScreen extends Screen implements Tab {
     private PlayerEntity playerEntity;
     private PlayerStatsManager playerStatsManager;
 
-    private int backgroundWidth = 200;
-    private int backgroundHeight = 215;
+    private final int backgroundWidth = 200;
+    private final int backgroundHeight = 215;
     private int x;
     private int y;
 
@@ -104,8 +104,8 @@ public class SkillScreen extends Screen implements Tab {
         WidgetButtonPage infoButton = this.addDrawableChild(new WidgetButtonPage(this.x + 178, this.y + 73, 11, 13, 0, 42, true, false, Text.translatable("text.levelz.more_info"), button -> {
         }));
         String[] infoTooltip = Text.translatable("text.levelz.gui.level_up_skill.tooltip").getString().split("\n");
-        for (int i = 0; i < infoTooltip.length; i++) {
-            infoButton.addTooltip(Text.of(infoTooltip[i]));
+        for (String s : infoTooltip) {
+            infoButton.addTooltip(Text.of(s));
         }
 
         if (!LevelLists.craftingItemList.isEmpty()) {
@@ -124,8 +124,8 @@ public class SkillScreen extends Screen implements Tab {
                 PlayerStatsClientPacket.writeC2SLevelUpPacket(level);
             }));
             String[] levelUpTooltip = Text.translatable("text.levelz.gui.level_up.tooltip").getString().split("\n");
-            for (int i = 0; i < levelUpTooltip.length; i++) {
-                levelUpButton.addTooltip(Text.of(levelUpTooltip[i]));
+            for (String s : levelUpTooltip) {
+                levelUpButton.addTooltip(Text.of(s));
             }
             levelUpButton.active = !playerStatsManager.isMaxLevel() && (this.playerStatsManager.getNonIndependentExperience() / this.playerStatsManager.getNextLevelExperience()) >= 1;
         }
@@ -137,17 +137,21 @@ public class SkillScreen extends Screen implements Tab {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        super.renderBackground(context, mouseX, mouseY, delta);
         int i = (this.width - this.backgroundWidth) / 2;
         int j = (this.height - this.backgroundHeight) / 2;
         context.drawTexture(BACKGROUND_TEXTURE, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        InventoryScreen.drawEntity(context, i + 6, j + 8, i + 55, j + 78, 30, 0.0625f, mouseX, mouseY, this.client.player);
+    }
 
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        super.render(context, mouseX, mouseY, delta);
+        if (this.client == null) {
+            return;
+        }
         if (this.client.player != null) {
-            int scaledWidth = this.client.getWindow().getScaledWidth();
-            int scaledHeight = this.client.getWindow().getScaledHeight();
-            InventoryScreen.drawEntity(context, scaledWidth / 2 - 75, scaledHeight / 2 - 40, 30, -28, 0, this.client.player);
-
             // Top label
             Text playerName = Text.translatable("text.levelz.gui.title", playerEntity.getName().getString());
             context.drawText(this.textRenderer, playerName, this.x - this.textRenderer.getWidth(playerName) / 2 + 120, this.y + 7, 0x3F3F3F, false);
@@ -197,8 +201,8 @@ public class SkillScreen extends Screen implements Tab {
                 }
             }
             if (skillsAllMaxed && ConfigInit.CONFIG.allowHigherSkillLevel) {
-                for (int o = 0; o < this.levelButtons.length; o++) {
-                    this.levelButtons[o].active = true;
+                for (WidgetButtonPage levelButton : this.levelButtons) {
+                    levelButton.active = true;
                 }
             }
 
@@ -218,7 +222,6 @@ public class SkillScreen extends Screen implements Tab {
         context.drawTexture(ICON_TEXTURES, this.x + 155, this.y + 21, 36, 0, 9, 9); // foodIcon
         context.drawTexture(ICON_TEXTURES, this.x + 155, this.y + 34, 45, 0, 9, 9); // fortuneIcon
 
-        super.render(context, mouseX, mouseY, delta);
         DrawTabHelper.drawTab(client, context, this, x, y, mouseX, mouseY);
     }
 
@@ -290,7 +293,7 @@ public class SkillScreen extends Screen implements Tab {
             }
         }
 
-        damage += playerEntity.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
+        damage += (float) playerEntity.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
         return String.valueOf(BigDecimal.valueOf(damage).setScale(2, RoundingMode.HALF_DOWN).floatValue());
     }
 
@@ -300,7 +303,7 @@ public class SkillScreen extends Screen implements Tab {
         private final boolean clickable;
         private final int textureX;
         private final int textureY;
-        private List<Text> tooltip = new ArrayList<Text>();
+        private List<Text> tooltip = new ArrayList<>();
         private int clickedKey = -1;
 
         public WidgetButtonPage(int x, int y, int sizeX, int sizeY, int textureX, int textureY, boolean hoverOutline, boolean clickable, @Nullable Text tooltip, ButtonWidget.PressAction onPress) {
@@ -317,7 +320,7 @@ public class SkillScreen extends Screen implements Tab {
         }
 
         @Override
-        public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             MinecraftClient minecraftClient = MinecraftClient.getInstance();
             context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
             RenderSystem.enableBlend();
